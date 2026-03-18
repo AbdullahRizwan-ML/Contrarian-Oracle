@@ -95,7 +95,7 @@ The Contrarian Oracle uses **4 collaborative AI agents** (built with CrewAI) to 
 | Component | Technology |
 |---|---|
 | **Agent Framework** | CrewAI |
-| **LLM Providers** | Google Gemini, Groq, Ollama |
+| **LLM Providers** | Groq (Llama-3.1-8B + Llama-3.3-70B Logic Hybrid) |
 | **Market Data** | yfinance |
 | **News Search** | DuckDuckGo Search |
 | **SEC Filings** | SEC EDGAR API |
@@ -141,7 +141,6 @@ pip install -r requirements.txt
 cp .env.example .env
 
 # Edit .env with your API keys:
-# - GEMINI_API_KEY (free at https://aistudio.google.com/)
 # - GROQ_API_KEY (free at https://console.groq.com/)
 # - FRED_API_KEY (free at https://fred.stlouisfed.org/docs/api/api_key.html)
 ```
@@ -217,7 +216,7 @@ contrarian-oracle/
 
 All settings are managed via `.env` file and `src/config/settings.py`:
 
-- **LLM Provider**: Switch between Gemini, Groq, or Ollama
+- **LLM Provider**: Uses Groq ecosystem (hybrid routing between 8B model for fast tasks, 70B for smart logic)
 - **Score Weights**: Adjust via UI sliders or `.env` defaults
 - **Cache TTL**: Configure how long data is cached (default: 4 hours)
 - **RAG Settings**: Chunk size, overlap, top-k retrieval
