@@ -32,6 +32,6 @@ def create_contrarian_skeptic(llm_model_name: str, tools: Optional[list] = None)
         llm=llm_model_name,
         verbose=True,
         memory=False,
-        max_iter=4,  # Reduced to 4 to stay under token limits
+        max_iter=2,  # Reduced to 2 for free tier reliability (was 4)
         allow_delegation=False,
     )

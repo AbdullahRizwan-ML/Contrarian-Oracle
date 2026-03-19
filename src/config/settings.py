@@ -7,8 +7,8 @@ class Settings(BaseSettings):
     """Application settings loaded from .env file."""
 
     groq_api_key: str = ""
-    groq_model: str = "openai/gpt-oss-20b"  # Fast model for Agents 1, 2, 3 (data collection)
-    groq_model_smart: str = "openai/gpt-oss-120b"  # Smart model for Agent 4 (final arbitration)
+    groq_model: str = "groq/llama-3.1-8b-instant"  # Fast model for Agents 1, 2, 3 (data collection)
+    groq_model_smart: str = "groq/llama-3.3-70b-versatile"  # Smart model for Agent 4 (final arbitration)
     news_lookback_hours: int = 48
     max_news_results: int = 3
     yfinance_period: str = "6mo"
