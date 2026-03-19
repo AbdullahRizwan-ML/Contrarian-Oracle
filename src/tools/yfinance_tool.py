@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Optional, Type
 
 import yfinance as yf
 from crewai.tools import BaseTool
@@ -26,12 +26,32 @@ class YFinanceTool(BaseTool):
         "Returns ALL technical metrics in one call - no additional tools needed."
     )
     args_schema: Type[BaseModel] = YFinanceToolInput
+    target_date: Optional[str] = None  # Class field for Pydantic model
+
+    def __init__(self, target_date: Optional[str] = None):
+        """Initialize YFinanceTool with optional historical date for backtesting.
+
+        Args:
+            target_date: Optional date string in format "YYYY-MM-DD". If provided,
+                        fetches data as of this historical date for point-in-time analysis.
+        """
+        super().__init__()
+        self.target_date = target_date
 
     def _run(self, ticker: str, period: str = "6mo") -> str:
         try:
-            logger.info(f"Fetching stock data for {ticker} (period={period})")
+            if self.target_date:
+                logger.info(f"Fetching stock data for {ticker} (period={period}, end={self.target_date})")
+            else:
+                logger.info(f"Fetching stock data for {ticker} (period={period})")
+
             stock = yf.Ticker(ticker)
-            hist = stock.history(period=period)
+
+            # If target_date is provided, fetch historical data up to that date
+            if self.target_date:
+                hist = stock.history(period=period, end=self.target_date)
+            else:
+                hist = stock.history(period=period)
 
             if hist.empty:
                 return f"Error: No historical data found for ticker '{ticker}'."

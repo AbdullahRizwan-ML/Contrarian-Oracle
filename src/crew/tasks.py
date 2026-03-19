@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Optional
+
 from crewai import Task
 
 from src.agents.trend_scraper import create_trend_scraper
@@ -7,20 +9,44 @@ from src.agents.sentiment_synthesizer import create_sentiment_synthesizer
 from src.agents.contrarian_skeptic import create_contrarian_skeptic
 from src.agents.final_arbitrator import create_final_arbitrator
 from src.config.settings import settings
+from src.tools.yfinance_tool import YFinanceTool
+from src.tools.news_search_tool import FinancialNewsSearchTool
+from src.tools.sec_edgar_tool import SECEdgarTool
+from src.tools.rag_query_tool import RAGQueryTool
 
 
-def create_tasks(ticker: str, llm_model_name: str) -> dict:
-    """Create all 4 agents and their tasks for a given ticker."""
+def create_tasks(ticker: str, llm_model_name: str, target_date: Optional[str] = None) -> dict:
+    """Create all 4 agents and their tasks for a given ticker.
+
+    Args:
+        ticker: Stock ticker symbol
+        llm_model_name: LLM model identifier
+        target_date: Optional historical date (YYYY-MM-DD) for point-in-time backtesting
+    """
     # Use 8B for data collection (fast, efficient)
     # Use 70B for final formatting (better template adherence)
     fast_model = settings.groq_model  # 8B for Agents 1, 2, 3
     smart_model = settings.groq_model_smart  # 70B for Agent 4 only
 
-    # Create agents with appropriate models
-    trend_scraper = create_trend_scraper(fast_model)
-    sentiment_synth = create_sentiment_synthesizer(fast_model)
-    contrarian_skeptic = create_contrarian_skeptic(fast_model)
-    arbitrator = create_final_arbitrator(smart_model)  # 70B for formatting
+    # Instantiate tools with target_date for time-travel capability
+    yf_tool = YFinanceTool(target_date=target_date)
+    news_tool = FinancialNewsSearchTool()
+    sec_tool = SECEdgarTool()
+    rag_tool = RAGQueryTool()
+
+    # Create agents with appropriate models and tools
+    trend_scraper = create_trend_scraper(fast_model, tools=[yf_tool])
+    sentiment_synth = create_sentiment_synthesizer(fast_model, tools=[news_tool])
+    contrarian_skeptic = create_contrarian_skeptic(fast_model, tools=[news_tool, sec_tool, rag_tool])
+    arbitrator = create_final_arbitrator(smart_model, tools=[])  # No tools - pure reasoning
+
+    # Add temporal context if analyzing historical date
+    time_context = ""
+    if target_date:
+        time_context = (
+            f"\n\nCRITICAL CONTEXT: You are analyzing this stock as if today is {target_date}. "
+            f"Only consider data and news up to this date."
+        )
 
     # Task 1: Technical analysis
     task_technicals = Task(
@@ -32,6 +58,7 @@ def create_tasks(ticker: str, llm_model_name: str) -> dict:
             f"Call it once with ticker='{ticker}' and report the results. "
             f"If any data is missing from the tool output, report 'N/A' - do not call additional tools. "
             f"Report only facts — never opinions."
+            f"{time_context}"
         ),
         expected_output=(
             "A detailed technical report containing: current price, "
@@ -54,6 +81,7 @@ def create_tasks(ticker: str, llm_model_name: str) -> dict:
             f"Calculate an overall sentiment score (-1.0 to +1.0). "
             f"Measure sentiment uniformity (how much headlines agree). "
             f"Identify the 'Mainstream Consensus' narrative in 2-3 sentences."
+            f"{time_context}"
         ),
         expected_output=(
             "A narrative analysis with: headline-by-headline breakdown, "
@@ -78,6 +106,7 @@ def create_tasks(ticker: str, llm_model_name: str) -> dict:
             f"Be concise. Return only the highest-quality, most severe risks. Do not ramble. "
             f"You MUST use the earnings_transcript_search tool to find hidden risks. "
             f"Explicitly quote the transcript in your evidence."
+            f"{time_context}"
         ),
         expected_output=(
             "A ranked list of contrarian evidence, each with category, "
@@ -106,6 +135,7 @@ def create_tasks(ticker: str, llm_model_name: str) -> dict:
             f"CRITICAL: You MUST use the EXACT output format specified below. "
             f"Copy the section headers EXACTLY with ### prefixes. "
             f"Do not add extra commentary outside the template."
+            f"{time_context}"
         ),
         expected_output=(
             "CRITICAL: Follow this EXACT format. Do not add extra text before or between sections:\n\n"
