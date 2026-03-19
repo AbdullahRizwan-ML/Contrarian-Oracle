@@ -1,0 +1,11 @@
+Ticker,Divergence_Score,Target_Date,Target_Price,Current_Price,Actual_Return_Pct,Status
+AAPL,68.0,2025-12-19,273.41,249.94,-8.59,SUCCESS
+MSFT,,2025-12-19,,,,ERROR: litellm.RateLimitError: RateLimitError: GroqExcept
+GOOGL,,2025-12-19,,,,ERROR: litellm.RateLimitError: RateLimitError: GroqExcept
+AMZN,,2025-12-19,,,,ERROR: litellm.RateLimitError: RateLimitError: GroqExcept
+NVDA,,2025-12-19,,,,ERROR: litellm.RateLimitError: RateLimitError: GroqExcept
+TSLA,,2025-12-19,,,,ERROR: litellm.RateLimitError: RateLimitError: GroqExcept
+META,,2025-12-19,,,,"ERROR: litellm.BadRequestError: GroqException - {""error"":"
+JPM,,2025-12-19,,,,ERROR: litellm.RateLimitError: RateLimitError: GroqExcept
+JNJ,,2025-12-19,,,,ERROR: litellm.RateLimitError: RateLimitError: GroqExcept
+V,,2025-12-19,,,,ERROR: litellm.RateLimitError: RateLimitError: GroqExcept

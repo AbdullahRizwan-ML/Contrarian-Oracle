@@ -7,6 +7,7 @@ and compares them against actual forward returns to measure predictive power.
 
 import re
 import sys
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional, Tuple
@@ -27,8 +28,9 @@ from src.config.settings import settings
 # CONFIGURATION
 # ─────────────────────────────────────────────────────────────────────────────
 
-TICKERS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA', 'META', 'JPM', 'JNJ', 'V']
+TICKERS = ['AAPL', 'MSFT', 'NVDA', 'GOOGL', 'TSLA']  # 5 major tech stocks
 LOOKBACK_DAYS = 90  # Analyze stocks from 90 days ago
+RATE_LIMIT_DELAY = 180  # 3 minutes between tickers (free tier optimization)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -135,6 +137,11 @@ def run_backtest() -> pd.DataFrame:
         print(f"{'─' * 80}")
 
         try:
+            # Rate limit mitigation: wait between tickers (except first one)
+            if idx > 1:
+                print(f"[Rate Limit Protection] Waiting {RATE_LIMIT_DELAY}s before next ticker...")
+                time.sleep(RATE_LIMIT_DELAY)
+
             # Run OracleCrew with historical target_date
             crew = OracleCrew(
                 ticker=ticker,
